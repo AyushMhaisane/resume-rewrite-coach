@@ -2,8 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
+const connectDB = require('./config/db');
 
 const app = express();
+
+//Connect to MongoDB
+connectDB();
 
 // Security Middleware
 app.use(helmet()); // Adds security headers
