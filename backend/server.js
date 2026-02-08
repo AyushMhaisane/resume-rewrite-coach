@@ -3,26 +3,32 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+
 
 const app = express();
 
-//Connect to MongoDB
 connectDB();
 
 // Security Middleware
-app.use(helmet()); // Adds security headers
+app.use(helmet()); 
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173', // Restrict to your frontend
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true // Allow cookies/headers if needed later
 }));
 
 // Body Parsing Middleware
 app.use(express.json());
 
+// Routes
+app.use('/api/auth', authRoutes);
+
 // Basic Health Check Route
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', service: 'Resume Coach API' });
 });
+
+
 
 const PORT = process.env.PORT || 5000;
 

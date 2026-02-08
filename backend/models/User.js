@@ -1,60 +1,76 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Please add a name']
+/**
+ * User Schema
+ * Represents an authenticated user in the system
+ */
+const userSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: [true, 'Please add a name'],
+            trim: true,
+        },
+
+        email: {
+            type: String,
+            required: [true, 'Please add an email'],
+            unique: true,
+            lowercase: true,
+            match: [
+                /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                'Please add a valid email',
+            ],
+        },
+
+        password: {
+            type: String,
+            required: [true, 'Please add a password'],
+            select: false, // Never return password in queries
+        },
+
+        isPro: {
+            type: Boolean,
+            default: false, // Free tier by default
+        },
+
+        practiceQuestionCount: {
+            type: Number,
+            default: 0, // Tracks free-tier usage (max 3)
+        },
+
+        refreshToken: {
+            type: String,
+            default: null, // Used for session control / force logout
+        },
     },
-    email: {
-        type: String,
-        required: [true, 'Please add an email'],
-        unique: true,
-        match: [
-            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-            'Please add a valid email'
-        ]
-    },
-    password: {
-        type: String,
-        required: [true, 'Please add a password'],
-        select: false // Security: Do not return password by default in queries
-    },
-    isPro: {
-        type: Boolean,
-        default: false // Everyone starts as Free tier
-    },
-    practiceQuestionCount: {
-        type: Number,
-        default: 0 // Tracks the 3-question limit for free users
-    },
-    refreshToken: {
-        type: String,
-        default: null // Stored for session management/revocation
+    {
+        timestamps: true, // Adds createdAt & updatedAt
     }
-}, {
-    timestamps: true // Automatically manages createdAt and updatedAt
-});
+);
 
-// --- ENCRYPTION MIDDLEWARE ---
 
-// 1. Encrypt password using bcrypt before saving
+// MIDDLEWARE (HOOKS)
+
+
+
+// Hash password before saving user
 userSchema.pre('save', async function (next) {
-    // If password is not modified (e.g., user just updated their name), skip hashing
+    // Only hash if password was modified or created
     if (!this.isModified('password')) {
-        next();
+        return;
     }
 
-    // Generate a salt (10 rounds is standard security balance between speed/safety)
     const salt = await bcrypt.genSalt(10);
-
-    // Hash the password with the salt
     this.password = await bcrypt.hash(this.password, salt);
+
+
 });
 
-// 2. Helper method to compare entered password with hashed password in DB
+// Compare entered password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
+    return bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);
