@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Basic Health Check Route
 app.get('/health', (req, res) => {
