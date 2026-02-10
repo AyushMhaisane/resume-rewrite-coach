@@ -8,11 +8,11 @@ const API = axios.create({
 API.interceptors.request.use((req) => {
     // We will store the token in localStorage for the MVP
     const user = JSON.parse(localStorage.getItem('user'));
-    
+
     if (user && user.accessToken) {
         req.headers.Authorization = `Bearer ${user.accessToken}`;
     }
-    
+
     return req;
 });
 
