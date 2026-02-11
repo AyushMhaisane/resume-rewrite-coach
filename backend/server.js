@@ -5,14 +5,14 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
-
+const analysisRoutes = require('./routes/analysisRoutes');
 
 const app = express();
 
 connectDB();
 
 // Security Middleware
-app.use(helmet()); 
+app.use(helmet());
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true // Allow cookies/headers if needed later
@@ -24,6 +24,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/analyze', analysisRoutes);
 
 // Basic Health Check Route
 app.get('/health', (req, res) => {
