@@ -1,8 +1,8 @@
 const { GetObjectCommand } = require('@aws-sdk/client-s3');
 const s3Client = require('../config/s3');
-const pdf = require('pdf-parse');
+const pdf = require('pdf-parse'); // This will now map to the correct library
 
-// Helper: Convert AWS Stream to Buffer (Node.js doesn't do this automatically)
+// Helper: Convert AWS Stream to Buffer
 const streamToBuffer = (stream) => {
     return new Promise((resolve, reject) => {
         const chunks = [];
@@ -14,19 +14,24 @@ const streamToBuffer = (stream) => {
 
 const getTextFromS3 = async (fileKey) => {
     try {
-        // 1. Fetch file from S3
+        console.log("Downloading from S3:", fileKey);
+        
         const command = new GetObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: fileKey
         });
         const { Body } = await s3Client.send(command);
 
-        // 2. Convert stream to buffer
+        // Convert stream to buffer
         const pdfBuffer = await streamToBuffer(Body);
 
-        // 3. Extract text
+        // Extract text
+        console.log("Parsing PDF...");
         const data = await pdf(pdfBuffer);
+        
+        console.log("Success! Extracted characters:", data.text.length);
         return data.text;
+
     } catch (error) {
         console.error("Error reading PDF from S3:", error);
         throw new Error('Failed to extract text from resume');
